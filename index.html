@@ -33,10 +33,7 @@
     <input type="text" id="city" placeholder="Enter city name"
        style="padding:8px; width:90%; border-radius:5px; height: 30px;width: 110px;">
 <br><br>
-
     <div class="box" >
-        
-
         <h2>Weather Report</h2>
         <h3>Jammu & Kashmir</h3>
         <p id="temp">---</p>
@@ -47,9 +44,7 @@
 function getWeather(){
     const apiKey = "49dd245b6fae9cdd4bd635cbdeef239d";
     const city = document.getElementById("city").value || "Srinagar";
-
     const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${apiKey}`;
-
     fetch(url)
     .then(response => response.json())
     .then(data => {
