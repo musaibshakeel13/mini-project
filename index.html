@@ -1,69 +1,397 @@
-
-
 <!DOCTYPE html>
 <html>
 <head>
     <title>Weather App - Jammu & Kashmir</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial;
-            background: #0f2027;
-            background: linear-gradient(to right, #2c5364, #203a43, #0f2027);
+            margin: 0;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
             color: white;
             text-align: center;
-            padding-top: 80px;
+            padding: 30px 15px;
+
+            background: linear-gradient(to right, #2c5364, #203a43, #0f2027);
+
+            transition: background 1s ease;
         }
+
+        .clock {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .date {
+            font-size: 16px;
+            margin-bottom: 25px;
+        }
+
+        .search-box {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 25px;
+        }
+
+        #city {
+            padding: 12px;
+            width: 250px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
         .box {
-            background: rgba(255,255,255,0.1);
-            padding: 30px;
-            border-radius: 10px;
-            width: 300px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+
+            padding: 25px;
+            border-radius: 15px;
+
+            width: 100%;
+            max-width: 400px;
+
             margin: auto;
+
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
         }
+
+        h2 {
+            margin-top: 0;
+        }
+
+        #weatherIcon {
+            width: 120px;
+            height: 120px;
+        }
+
+        #temp {
+            font-size: 35px;
+            font-weight: bold;
+            margin: 10px;
+        }
+
+        #desc {
+            font-size: 20px;
+            text-transform: capitalize;
+        }
+
+        .details {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .detail-box {
+            margin: 10px;
+            font-size: 15px;
+        }
+
         button {
-            padding: 10px 20px;
+            padding: 12px 18px;
             border: none;
             background: orange;
             color: black;
             font-size: 16px;
             cursor: pointer;
-            border-radius: 5px;
+            border-radius: 6px;
+        }
+
+        button:hover {
+            background: #ffcc00;
+        }
+
+        @media (max-width: 500px) {
+
+            body {
+                padding-top: 20px;
+            }
+
+            .clock {
+                font-size: 23px;
+            }
+
+            .search-box {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            #city {
+                width: 90%;
+            }
+
+            button {
+                width: 90%;
+            }
+
+            .box {
+                padding: 20px;
+            }
+
+            #temp {
+                font-size: 30px;
+            }
         }
     </style>
 </head>
-<body>
-    <input type="text" id="city" placeholder="Enter city name"
-       style="padding:8px; width:90%; border-radius:5px; height: 30px;width: 110px;">
-<br><br>
-    <div class="box" >
-        <h2>Weather Report</h2>
-        <h3>Jammu & Kashmir</h3>
-        <p id="temp">---</p>
-        <p id="desc">---</p>
-        <button onclick="getWeather()">Check Weather</button>
-    </div>
-   <script>
-function getWeather(){
-    const apiKey = "49dd245b6fae9cdd4bd635cbdeef239d";
-    const city = document.getElementById("city").value || "Srinagar";
-    const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${apiKey}`;
-    fetch(url)
-    .then(response => response.json())
-    .then(data => {
-        document.getElementById("temp").innerHTML =
-            "Temperature: " + data.main.temp + " °C";
 
-        document.getElementById("desc").innerHTML =
-            "Condition: " + data.weather[0].description;
-    })
-    .catch(error => {
-        alert("Error");
-        console.log(error);
-    });
-}
+<body>
+
+    <!-- REAL TIME CLOCK -->
+    <div class="clock" id="clock">
+        00:00:00
+    </div>
+
+    <div class="date" id="date">
+        Loading date...
+    </div>
+
+
+    <!-- SEARCH CITY -->
+    <div class="search-box">
+
+        <input 
+            type="text"
+            id="city"
+            placeholder="Enter city name"
+        >
+
+        <button onclick="getWeather()">
+            Check Weather
+        </button>
+
+    </div>
+
+
+    <!-- WEATHER BOX -->
+    <div class="box">
+
+        <h2>Weather Report</h2>
+
+        <h3 id="cityName">
+            Srinagar, IN
+        </h3>
+
+        <img id="weatherIcon" src="" alt="Weather Icon">
+
+        <p id="temp">
+            ---
+        </p>
+
+        <p id="desc">
+            ---
+        </p>
+
+
+        <div class="details">
+
+            <div class="detail-box">
+                💧 Humidity
+                <br>
+                <b id="humidity">---</b>
+            </div>
+
+            <div class="detail-box">
+                🌬️ Wind
+                <br>
+                <b id="wind">---</b>
+            </div>
+
+            <div class="detail-box">
+                🌡️ Feels Like
+                <br>
+                <b id="feels">---</b>
+            </div>
+
+        </div>
+
+    </div>
+
+
+<script>
+
+
+    // REAL-TIME CLOCK
+    function updateClock() {
+
+        const now = new Date();
+
+        let hours = now.getHours();
+        let minutes = now.getMinutes();
+        let seconds = now.getSeconds();
+
+        let ampm = hours >= 12 ? "PM" : "AM";
+
+        hours = hours % 12;
+
+        hours = hours ? hours : 12;
+
+        hours = String(hours).padStart(2, "0");
+        minutes = String(minutes).padStart(2, "0");
+        seconds = String(seconds).padStart(2, "0");
+
+        document.getElementById("clock").innerHTML =
+            "🕒 " + hours + ":" + minutes + ":" + seconds + " " + ampm;
+
+        document.getElementById("date").innerHTML =
+            now.toDateString();
+    }
+
+    setInterval(updateClock, 1000);
+
+    updateClock();
+
+
+
+    // WEATHER FUNCTION
+    function getWeather() {
+
+
+        // YOUR API KEY
+        const apiKey =
+            "49dd245b6fae9cdd4bd635cbdeef239d";
+
+
+        const city =
+            document.getElementById("city").value.trim() || "Srinagar";
+
+
+        const url =
+            `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${apiKey}`;
+
+
+        fetch(url)
+
+        .then(response => {
+
+            return response.json();
+
+        })
+
+        .then(data => {
+
+
+            // CHECK API ERROR
+            if (data.cod !== 200) {
+
+                throw new Error(data.message);
+
+            }
+
+
+            // CITY NAME
+            document.getElementById("cityName").innerHTML =
+                data.name + ", " + data.sys.country;
+
+
+            // TEMPERATURE
+            document.getElementById("temp").innerHTML =
+                data.main.temp + " °C";
+
+
+            // WEATHER DESCRIPTION
+            document.getElementById("desc").innerHTML =
+                data.weather[0].description;
+
+
+            // WEATHER ICON
+            const iconCode =
+                data.weather[0].icon;
+
+            document.getElementById("weatherIcon").src =
+                `https://openweathermap.org/img/wn/${iconCode}@4x.png`;
+
+
+            // HUMIDITY
+            document.getElementById("humidity").innerHTML =
+                data.main.humidity + "%";
+
+
+            // WIND SPEED
+            document.getElementById("wind").innerHTML =
+                data.wind.speed + " m/s";
+
+
+            // FEELS LIKE
+            document.getElementById("feels").innerHTML =
+                data.main.feels_like + " °C";
+
+
+            // WEATHER BACKGROUND
+            const weather =
+                data.weather[0].main.toLowerCase();
+
+
+            if (weather.includes("clear")) {
+
+                document.body.style.background =
+                    "linear-gradient(to right, #f7971e, #ffd200)";
+
+            }
+
+            else if (weather.includes("cloud")) {
+
+                document.body.style.background =
+                    "linear-gradient(to right, #757f9a, #d7dde8)";
+
+            }
+
+            else if (
+                weather.includes("rain") ||
+                weather.includes("drizzle")
+            ) {
+
+                document.body.style.background =
+                    "linear-gradient(to right, #314755, #26a0da)";
+
+            }
+
+            else if (weather.includes("snow")) {
+
+                document.body.style.background =
+                    "linear-gradient(to right, #83a4d4, #b6fbff)";
+
+            }
+
+            else if (
+                weather.includes("mist") ||
+                weather.includes("fog") ||
+                weather.includes("haze")
+            ) {
+
+                document.body.style.background =
+                    "linear-gradient(to right, #606c88, #3f4c6b)";
+
+            }
+
+        })
+
+
+        .catch(error => {
+
+            alert("Error: " + error.message);
+
+            console.log(error);
+
+        });
+
+    }
+
+
+    // DEFAULT WEATHER
+    getWeather();
+
+
 </script>
+
 </body>
 </html>
-
-
-  
